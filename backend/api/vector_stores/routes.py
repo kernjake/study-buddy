@@ -1,0 +1,86 @@
+from fastapi import Request as Request1
+from fastapi import APIRouter, HTTPException
+
+
+from backend.services.vector_store_services import VectorStoreOperations
+from backend.services.document_processing_services import DocumentProcessingServices
+
+from backend.models.vector_store_models import (
+    CreateVectorStoreRequest,
+    CreateVectorStoreResponse,
+    IngestDocsRequest,
+    IngestDocsResponse
+)
+
+
+router = APIRouter()
+
+@router.post(
+        "/create_vector_store",
+        status_code = 200,
+        summary = "Creates a vector store for documents to be stored to."
+    )
+
+async def create_vector_store(
+    req: CreateVectorStoreRequest,
+    ): 
+    try: 
+        if req.embedding is not None:
+            messsage = VectorStoreOperations.create_vector_store(
+                vector_store_name= req.name,
+                embedding_model = req.embedding_model
+             )
+        else:
+            message = VectorStoreOperations.create_vector_store(
+                vector_store_name = req.name
+            )
+        
+        
+        return CreateVectorStoreResponse(
+            status = "success",
+            message = message
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code = 400,
+            detail = f"error: {str(e)}"
+        )
+
+# @router.get(
+#         "/get_vector_stores",
+#         status_code = 200,
+#         summary = "Fetch all previously created Vector Stores."
+# )
+
+# async def get_available_vector_stores(
+#     req:
+# )
+#     print("hi")
+
+
+@router.post(
+    "/ingest_documents",
+    status_code = 200,
+    summary = "Loads and ingests given documents from a directory to vector DB."
+    )
+
+async def ingest_documents(
+    req: IngestDocsRequest
+    ):
+    try:
+        message = VectorStoreOperations.ingest_documents(
+            path = req.file_dir,
+            vectore_store = req.vector_store
+        )
+        return IngestDocsResponse(
+            status = "success",
+            message = message
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code = 400,
+            detail = f"error: {str(e)}"
+        )
+    
