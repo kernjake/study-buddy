@@ -2,14 +2,15 @@ from fastapi import Request as Request1
 from fastapi import APIRouter, HTTPException
 
 
-from backend.services.vector_store_services import VectorStoreOperations
+from backend.services.vector_store_services import VectorStoreManager
 from backend.services.document_processing_services import DocumentProcessingServices
 
 from backend.models.vector_store_models import (
     CreateVectorStoreRequest,
     CreateVectorStoreResponse,
     IngestDocsRequest,
-    IngestDocsResponse
+    IngestDocsResponse,
+    QueryRequest
 )
 
 
@@ -26,12 +27,12 @@ async def create_vector_store(
     ): 
     try: 
         if req.embedding is not None:
-            messsage = VectorStoreOperations.create_vector_store(
+            messsage = VectorStoreManager.create_vector_store(
                 vector_store_name= req.name,
                 embedding_model = req.embedding_model
              )
         else:
-            message = VectorStoreOperations.create_vector_store(
+            message = VectorStoreManager.create_vector_store(
                 vector_store_name = req.name
             )
         
@@ -69,7 +70,7 @@ async def ingest_documents(
     req: IngestDocsRequest
     ):
     try:
-        message = VectorStoreOperations.ingest_documents(
+        message = VectorStoreManager.ingest_documents(
             path = req.file_dir,
             vectore_store = req.vector_store
         )

@@ -2,8 +2,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 import enum
 
-from langchain_core.documents import Document
-
 class Status(str, enum):
     failure = "failure"
     success = "success"
@@ -23,4 +21,3 @@ class IngestDocsRequest(BaseModel):
 class IngestDocsResponse(BaseModel):
     status: Status
     message: str
-

@@ -57,7 +57,8 @@ class DocumentProcessingServices:
         return pages
 
     @staticmethod
-    def process_files(directory_path:str, extensions:list = None):
+    def process_files(directory_path:str, 
+                      extensions:list = None):
         files = DocumentProcessingServices.get_files(directory_path, extensions)
         loaded_files = DocumentProcessingServices.load_documents(files)
 
@@ -66,6 +67,5 @@ class DocumentProcessingServices:
             documents.extend(DocumentProcessingServices.prepare_document(file))
 
         return documents
-
 
         
