@@ -15,7 +15,7 @@ from services.chat_services import ChatManager
 @router.post(
     "/rag_response",
     status_code = 200,
-    summary = "Querys documents based on the vectore store"
+    summary = "Returns response based on documents in the vector store"
 )
 
 async def rag_response(

@@ -26,14 +26,22 @@ async def create_vector_store(
     req: CreateVectorStoreRequest,
     ): 
     try: 
-        if req.embedding is not None:
+        ner_model = req.ner_model
+        if ner_model is not None:
+            ner_model = {"model_name": ner_model.model_name,
+                         "model_type": ner_model.model_type}
+    
+        if req.embedding_model is not None:
             messsage = VectorStoreManager.create_vector_store(
                 vector_store_name= req.name,
-                embedding_model = req.embedding_model
+                embedding_model = req.embedding_model,
+                ner_model = ner_model
              )
+            
         else:
             message = VectorStoreManager.create_vector_store(
-                vector_store_name = req.name
+                vector_store_name = req.name,
+                ner_model = ner_model
             )
         
         
@@ -72,7 +80,7 @@ async def ingest_documents(
     try:
         message = VectorStoreManager.ingest_documents(
             path = req.file_dir,
-            vectore_store = req.vector_store
+            vector_store_name = req.vector_store
         )
         return IngestDocsResponse(
             status = "success",

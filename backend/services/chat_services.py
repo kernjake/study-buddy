@@ -27,8 +27,9 @@ class ChatManager:
         return cls._model
 
     @classmethod
-    def get_rag_graph(cls, vector_store):
+    def get_rag_graph(cls, vector_store_name):
         if cls._rag_graph is None:
+            vector_store = VectorStoreManager.get_vector_store(vector_store_name)
             retrieve = ChatManager.make_retrieve_node(vector_store)
             generate = ChatManager.make_generate_node()
             graph_builder = StateGraph(State).add_sequence([

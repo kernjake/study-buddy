@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from routes import chat_routes, vector_store_routes
 
 
-
 load_dotenv()
 os.environ.get("GOOGLE_API_KEY")
 

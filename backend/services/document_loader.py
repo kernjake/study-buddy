@@ -7,10 +7,11 @@ class DocLoader:
     Pipeline to handle various document type ingestion and parsing by section. 
     """
     _instance = None
+    layout = None
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(DocLoader, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
 
             print("Loading DocLoader!")
 
@@ -21,5 +22,6 @@ class DocLoader:
             cls.layout = layout
         return cls._instance
     
+    @classmethod
     def render_table(cls, df:pd.DataFrame):
-        return df.to_markdown
+        return df.to_markdown()
