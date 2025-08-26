@@ -8,10 +8,11 @@ from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from backend.services.document_processing_services import DocumentProcessingServices
+from services.document_processing_services import DocumentProcessingServices
 
 class VectorStoreManager:
-    _stores = {} #chache of vector stores
+    _stores = {} #cache of vector stores
+    _metadata = {}
 
     @staticmethod
     def get_embeddings_model(embedding_model_name: str = "models/gemini-embedding-001"):
@@ -19,20 +20,21 @@ class VectorStoreManager:
         return embeddings
     
     @staticmethod
-    def save_metadata(path:str, 
+    def save_metadata(path: str, 
                       metadata: dict):
         os.makedirs(os.path.dirname(path), exist_ok = True)
         with open(path, "w", encoding = "utf-8") as f:
             json.dump(metadata)
 
     @staticmethod
-    def load_metadata(vector_store_name:str):
+    def load_metadata(vector_store_name: str):
         with open(f"vector_stores/{vector_store_name}/metadata.json", "r", encoding = "utf-8") as f:
             return json.loads(f)
         
     @staticmethod
     def create_vector_store(vector_store_name: str, 
-                            embedding_model:str = "models/gemini-embedding-001"
+                            embedding_model: str = "models/gemini-embedding-001",
+                            ner_model: tuple = None
                             ):
         if embedding_model == "models/gemini-embedding-001":
             embeddings = VectorStoreManager.get_embeddings_model()
@@ -59,12 +61,12 @@ class VectorStoreManager:
         metadata = {
             "name": vector_store_name,
             "embedding_model": embedding_model,
-            "entity_recognition":"None",
+            "ner_model": ner_model,
             "doc_names": []
         }
 
         VectorStoreManager.save_metadata(vector_store_path, 
-                                            metadata)
+                                         metadata)
 
         return "Vector store created succesfully!"
     
@@ -80,21 +82,20 @@ class VectorStoreManager:
                 allow_dangerous_deserialization = True
             )
             cls._stores[vector_store_name] = vector_store
+            cls._metadata[vector_store] = vector_store_metadata
         return cls._stores[vector_store_name]
 
     @staticmethod
-    def ingest_documents(path:str, 
-                         vector_store_name:str,
+    def ingest_documents(path: str, 
+                         vector_store_name: str
                          ):
-        files = DocumentProcessingServices.get_files(directory_path = path)
-
-        loaded_files = DocumentProcessingServices.load_documents(files)
-
-        documents = []
-        for file in loaded_files:
-            documents.extend(DocumentProcessingServices.prepare_document(file))
-
+        
         vector_store = VectorStoreManager.get_vector_store(vector_store_name)
+        ner_model_info = VectorStoreManager._metatdata[vector_store_name]["ner_model"]
+        documents = DocumentProcessingServices.process_files(directory_path = path,
+                                                             ner_model_info = ner_model_info)
+
+
         uuids = [str(uuid4()) for _ in range(len(documents))]
 
         vector_store.add_documents(

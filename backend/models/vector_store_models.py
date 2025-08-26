@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from typing import List, Optional
-import enum
+from enum import Enum
 
-class Status(str, enum):
+class Status(str, Enum):
     failure = "failure"
     success = "success"
 

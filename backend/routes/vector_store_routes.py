@@ -2,19 +2,19 @@ from fastapi import Request as Request1
 from fastapi import APIRouter, HTTPException
 
 
-from backend.services.vector_store_services import VectorStoreManager
-from backend.services.document_processing_services import DocumentProcessingServices
+from services.vector_store_services import VectorStoreManager
+from services.document_processing_services import DocumentProcessingServices
 
-from backend.models.vector_store_models import (
+from models.vector_store_models import (
     CreateVectorStoreRequest,
     CreateVectorStoreResponse,
     IngestDocsRequest,
-    IngestDocsResponse,
-    QueryRequest
+    IngestDocsResponse
 )
 
 
-router = APIRouter()
+router = APIRouter(prefix = "/vector_store",
+                   tags = ["vector_store"])
 
 @router.post(
         "/create_vector_store",

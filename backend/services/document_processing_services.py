@@ -1,6 +1,8 @@
 import os
 
 from services.document_loader import DocLoader
+from services.ocr_service import OCRService
+from services.ner_service import NERService
 
 from langchain_core.documents import Document
 
@@ -31,12 +33,34 @@ class DocumentProcessingServices:
         return docs
     
     @staticmethod
-    def prepare_document(doc_info: tuple):
+    def prepare_document(doc_info: tuple,
+                         ner_model: NERService):
         #modify for entities detection into metadata later
-        doc = doc_info[0]
+        doc, file_name = doc_info
         
         pages = []
-        text = doc[0].text
+        text = doc[0].text if doc and len(doc) > 0 else ""
+
+        if not text.strip():
+            ocr_engine = OCRService()
+            ocr_pages = ocr_engine.extract_from_pdf(file_name)
+
+            for page in ocr_pages:
+                page_content = page["content"]
+                entities = []
+                if ner_model is not None:
+                    entities.extend(NERService.extract_entities())
+                document = Document(
+                    page_content = page_content,
+                    metadata = {
+                        "file_name": file_name,
+                        "page_no": page["page_no"],
+                        "processing_method": "trOCR",
+                        "entites": entities
+                    }
+                )
+                pages.append(document)
+            return pages
 
         for page in doc._.pages:
             page_no = page[0].page_no
@@ -45,11 +69,18 @@ class DocumentProcessingServices:
             page_end = page_spans[-1].end_char
             page_text = text[page_start:page_end]
 
+            entities = []
+            if ner_model is not None:
+                entities.extend(NERService.extract_entities())
+            
             document = Document(
                 page_content = page_text,
                 metadata = {
-                    "doc_title": doc_info[1],
-                    "page_no": page_no
+                    "file_name": doc_info[1],
+                    "page_no": page_no,
+                    "processing_method": "spaCyLayout",
+                    "entities": entities
+
                 }
             )
             pages.append(document)
@@ -58,13 +89,20 @@ class DocumentProcessingServices:
 
     @staticmethod
     def process_files(directory_path:str, 
-                      extensions:list = None):
+                      extensions:list = None,
+                      ner_model_info: tuple = None):
+        if ner_model_info is not None:
+            model_type, model_name = ner_model_info
+            ner_model = NERService(model_type = model_type,
+                                   model_name = model_name)
+
         files = DocumentProcessingServices.get_files(directory_path, extensions)
         loaded_files = DocumentProcessingServices.load_documents(files)
 
         documents = []
         for file in loaded_files:
-            documents.extend(DocumentProcessingServices.prepare_document(file))
+            documents.extend(DocumentProcessingServices.prepare_document(file, 
+                                                                         ner_model))
 
         return documents
 
