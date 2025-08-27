@@ -8,10 +8,12 @@ from langgraph.graph import START, StateGraph
 
 from prompts.prompts import *
 from services.vector_store_services import VectorStoreManager
+from services.ner_service import NERService
 
 
 class State(TypedDict):
     question: str
+    entites: List[str]
     context: List[Document]
     answer: str
 
@@ -27,12 +29,15 @@ class ChatManager:
         return cls._model
 
     @classmethod
-    def get_rag_graph(cls, vector_store_name):
+    def get_rag_graph(cls, 
+                      vector_store_name: str):
         if cls._rag_graph is None:
             vector_store = VectorStoreManager.get_vector_store(vector_store_name)
+            tag_ents = ChatManager.make_tag_ents_node(vector_store_name)
             retrieve = ChatManager.make_retrieve_node(vector_store)
             generate = ChatManager.make_generate_node()
             graph_builder = StateGraph(State).add_sequence([
+                tag_ents,
                 retrieve,
                 generate
             ])
@@ -42,9 +47,24 @@ class ChatManager:
         return cls._rag_graph
     
     @staticmethod
+    def make_tag_ents_node(vector_store_name) -> callable:
+        def tag_ents(state: State):
+            ner_model_info = VectorStoreManager._metadata[vector_store_name]
+            model_type = ner_model_info["model_type"]
+            model_name = ner_model_info["model_name"]
+            NERService.get_ner_model(model_type = model_type,
+                                     model_name = model_name)
+            entities = NERService.extract_entities(text = state["question"],
+                                                  model_name = model_name)
+            return {"entities": entities}
+        return tag_ents
+
+    @staticmethod
     def make_retrieve_node(vector_store) -> callable:
         def retrieve(state: State):
-            retrieved_docs = vector_store.similarity_search(state["question"])
+            retrieved_docs = vector_store.similarity_search(state["question"]
+                                                            #filter = state[entities] needs work
+                                                            )
             return{"context": retrieved_docs}
         return retrieve
 
@@ -62,10 +82,9 @@ class ChatManager:
         return generate
     
     @staticmethod
-    def generate_rag_response(vector_store, user_question):
-        graph = ChatManager.get_rag_graph(vector_store)
+    def generate_rag_response(vector_store_name: str, 
+                              user_question: str):
+        graph = ChatManager.get_rag_graph(vector_store_name)
         question = user_question
         response = graph.invoke({"question": question})
         return response["answer"]
-        
-

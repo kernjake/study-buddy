@@ -23,7 +23,7 @@ async def rag_response(
     ):
     try:
         message = ChatManager.generate_rag_response(
-            vector_store = req.vector_store,
+            vector_store_name = req.vector_store_name,
             user_question = req.user_query)
         
         return QueryResponse(

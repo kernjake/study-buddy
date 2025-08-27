@@ -51,21 +51,25 @@ class DocumentProcessingServices:
 
             for page in ocr_pages:
                 page_content = page["content"]
+
+                metadata = {
+                    "file_name": file_name,
+                    "page_no": page["page_no"],
+                    "processing_method": "trOCR"
+                }
                 entities = []
                 if ner_model_name is not None:
-                    entities.extend(NERService.extract_entities(text = text,
-                                                                model_name = ner_model_name))
+                    entites = NERService.extract_entities(text = text,
+                                                          model_name = ner_model_name)
+                    metadata.update(entities)
+
                 document = Document(
                     page_content = page_content,
-                    metadata = {
-                        "file_name": file_name,
-                        "page_no": page["page_no"],
-                        "processing_method": "trOCR",
-                        "entites": entities
-                    }
+                    metadata = metadata
                 )
                 pages.append(document)
             return pages
+        
         if extension == ".pdf":
             for page in doc._.pages:
                 page_no = page[0].page_no
@@ -74,19 +78,19 @@ class DocumentProcessingServices:
                 page_end = page_spans[-1].end_char
                 page_text = text[page_start:page_end]
 
-                entities = []
+                metadata = {
+                    "file_name": doc_info[1],
+                    "page_no": page_no,
+                    "processing_method": "spaCyLayout",
+                }
                 if ner_model_name is not None:
-                    entities.extend(NERService.extract_entities(text = text,
-                                                                model_name = ner_model_name))
+                    entities = NERService.extract_entities(text = text,
+                                                            model_name = ner_model_name)
+                    metadata.update(entities)
                 
                 document = Document(
                     page_content = page_text,
-                    metadata = {
-                        "file_name": doc_info[1],
-                        "page_no": page_no,
-                        "processing_method": "spaCyLayout",
-                        "entities": entities
-                    }
+                    metadata = metadata
                 )
                 pages.append(document)
             return pages
@@ -103,16 +107,17 @@ class DocumentProcessingServices:
             chunks = text_splitter.split_text(text)
 
             for chunk in chunks:
-                entities = []
+                metadata = {
+                    "file_name": doc_info[1],
+                    "processing_method": "Recursive Text Splitter"
+                }
                 if ner_model_name is not None:
-                    entities.extend(NERService.extract_entities(text = chunk,
-                                                                model_name = ner_model_name))
+                    entities = NERService.extract_entities(text = chunk,
+                                                           model_name = ner_model_name)
+                    metadata.update(entities)
+
                 document = Document(page_content = chunk,
-                                    metadata = {
-                                        "file_name": doc_info[1],
-                                        "processing_method": "Recursive Text Splitter",
-                                        "entities": entities
-                                        }
+                                    metadata = metadata
                 )
                 pages.append(document)
             return pages
@@ -125,8 +130,9 @@ class DocumentProcessingServices:
         
         ner_model_name = None
         if ner_model_info is not None:
-            ner_model_name = NERService.get_ner_model(model_type = ner_model_info["model_type"],
-                                                      model_name = ner_model_info["model_name"])
+            NERService.get_ner_model(model_type = ner_model_info["model_type"],
+                                     model_name = ner_model_info["model_name"])
+            ner_model_name = ner_model_info["model_name"]
 
         extensions = [".pdf", ".docx", ".pptx"]
         files = DocumentProcessingServices.get_files(directory_path, extensions)

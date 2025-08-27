@@ -9,9 +9,7 @@ from routes import chat_routes, vector_store_routes
 load_dotenv()
 os.environ.get("GOOGLE_API_KEY")
 
-
 from contextlib import asynccontextmanager
-
 
 
 app = FastAPI(

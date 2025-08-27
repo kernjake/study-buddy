@@ -7,7 +7,7 @@ class Status(str, Enum):
     success = "success"
 
 class QueryRequest(BaseModel):
-    vector_store: str
+    vector_store_name: str
     user_query: str
 
 class QueryResponse(BaseModel):

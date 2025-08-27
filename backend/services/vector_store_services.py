@@ -51,9 +51,7 @@ class VectorStoreManager:
             index_to_docstore_id={}
         )
 
-        
         vector_store_path = f"vector_stores/{vector_store_name}"
-
         os.makedirs(os.path.dirname(vector_store_path), exist_ok = True)
         vector_store.save_local(vector_store_path)
         
@@ -97,7 +95,6 @@ class VectorStoreManager:
 
         documents = DocumentProcessingServices.process_files(directory_path = path,
                                                              ner_model_info = ner_model_info)
-
 
         uuids = [str(uuid4()) for _ in range(len(documents))]
 

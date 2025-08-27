@@ -23,24 +23,35 @@ class NERService:
                                                    "model_type": model_type}
             else:
                 raise ValueError(f"Unsupported NER model_type: {model_type}")
-        return cls._ner_models[model_name]
 
-
-    def extract_entities(self, 
+    @classmethod
+    def extract_entities(cls, 
                          text: str, 
                          model_name: str):
         #need to refactor and clean up
-        model_type = self._model_metadata[model_name]["model_type"]
-        model = self._ner_models["model_name"]
+        model_type = cls._model_metadata[model_name]["model_type"]
+        model = cls._ner_models[model_name]
 
+        entities = {}
         if model_type == "spacy":
             doc = model(text)
-            ner_results = [ent.text.lower() for ent in doc.ents]
-            return ner_results
+            for ent in doc.ents:
+                ent_label = ent.label_
+                ent_text = ent.text.strip().lower()
+                if ent_label not in entities:
+                    entities[ent_label] = []
+                entities[ent_label].append(ent_text)
 
         elif model_type == "hf":
-            ner_results = [ent["word"].lower() for ent in model(text)]
-            return ner_results
+            results = model(text)
+            for ent in results:
+                ent_label = ent["entity_group"]
+                ent_text = ent["word"].strip().lower()
+                if ent_label not in entities:
+                    entities[ent_label] = []
+                entities[ent_label].append(ent_text)
         
         else:
                 raise ValueError(f"Unsupported NER model_type: {model_type}")
+        
+        return entities
