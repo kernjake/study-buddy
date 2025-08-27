@@ -1,1 +1,0 @@
-{"name": "ner-test", "embedding_model": "models/gemini-embedding-001", "ner_model": {"model_name": "en_core_web_sm", "model_type": "spacy"}, "doc_names": []}
