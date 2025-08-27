@@ -1,4 +1,5 @@
 # study-buddy
+*Note: In active development*
 Goal: Chatbot capable of interacting with various document types common to classes including
 - Microsoft Office documents (spaCyLayout)
 - Printed PDFs (spaCyLayout)
