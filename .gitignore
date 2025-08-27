@@ -1,2 +1,4 @@
 .env
-/backend/notebooks/test_docs
+/backend/notebooks
+/backend/vector_stores/ner-test
+/backend/vector_stores/test-vector-store
