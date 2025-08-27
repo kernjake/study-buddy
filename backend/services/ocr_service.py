@@ -9,7 +9,7 @@ class OCRService:
     def __new__(cls, model_name="microsoft/trocr-base-handwritten"):
         if cls._instance is None:
             cls._instance = super(OCRService, cls).__new__(cls)
-            print("⚡ Loading TrOCR model into memory...")
+            print("Loading TrOCR")
 
             cls.processor = TrOCRProcessor.from_pretrained(model_name)
             cls.model = VisionEncoderDecoderModel.from_pretrained(model_name)
@@ -23,7 +23,7 @@ class OCRService:
 
     def extract_from_pdf(self, pdf_path: str):
         """Convert PDF to images and run OCR page by page."""
-        pages = convert_from_path(pdf_path)  # list of PIL images
+        pages = convert_from_path(pdf_path)
         results = []
         for i, page in enumerate(pages, start=1):
             text = self.extract_text_from_image(page)
